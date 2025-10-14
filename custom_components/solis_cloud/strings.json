@@ -1,0 +1,22 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Solis Cloud",
+        "description": "Enter your Solis Cloud API credentials",
+        "data": {
+          "key_id": "API Key ID",
+          "secret": "API Secret",
+          "username": "Username"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to Solis Cloud. Please check your credentials.",
+      "unknown": "Unexpected error occurred"
+    },
+    "abort": {
+      "already_configured": "This Solis Cloud account is already configured"
+    }
+  }
+}
