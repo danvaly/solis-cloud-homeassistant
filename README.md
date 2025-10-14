@@ -10,9 +10,14 @@ This integration allows you to monitor your Solis solar inverters through the So
 
 - Real-time monitoring of your Solis inverter
 - Energy production tracking (today, month, year, total)
-- Current power output
+- Current power output and production
+- Battery monitoring (SOC, charge/discharge state)
+- Grid consumption tracking
+- Backup load monitoring
+- Inverter temperature monitoring
 - Inverter status monitoring
 - Automatic data updates every 5 minutes
+- Pre-configured dashboard widgets
 
 ## Installation
 
@@ -57,12 +62,51 @@ To obtain your API credentials:
 
 The integration creates the following sensors for each inverter:
 
-- **Current Power** - Current power output in watts
-- **Energy Today** - Energy produced today in kWh
+### Power & Production
+- **Current Production** - Current solar power production in watts
+- **Today Production** - Energy produced today in kWh
 - **Energy This Month** - Energy produced this month in kWh
 - **Energy This Year** - Energy produced this year in kWh
-- **Energy Total** - Total energy produced in kWh
-- **State** - Current inverter state (Online/Offline/Alarm)
+- **Energy Total** - Total lifetime energy produced in kWh
+
+### Battery
+- **Battery SOC** - Battery state of charge (%)
+- **Battery State** - Battery power in watts with charge/discharge status
+
+### Grid & Load
+- **Grid Consumption** - Current grid power consumption in watts
+- **Backup Load** - Current backup/house load in watts
+
+### System Status
+- **Current State** - Inverter state (Online/Offline/Alarm)
+- **Inverter Temperature** - Temperature in Celsius
+
+## Dashboard Widgets
+
+The integration includes pre-configured dashboard cards. See [lovelace-card-example.yaml](lovelace-card-example.yaml) for:
+
+- **Power Flow Card** - Visual representation of energy flow
+- **Status Overview** - Complete system status at a glance
+- **Power Gauges** - Real-time power and battery gauges
+- **Battery Details** - Detailed battery information
+- **Energy History** - Production history graphs
+- **Compact Mobile Cards** - Optimized for mobile devices
+
+### Quick Setup
+
+1. Copy the desired card configuration from `lovelace-card-example.yaml`
+2. Go to your Home Assistant dashboard
+3. Click the three dots menu → "Edit Dashboard"
+4. Click "+ Add Card" → "Manual" (at the bottom)
+5. Paste the configuration
+6. Replace entity IDs with your inverter's serial number
+
+**Note:** Some cards require additional HACS frontend components:
+- `power-flow-card-plus` - Enhanced power flow visualization
+- `apexcharts-card` - Advanced charting
+- `mini-graph-card` - Compact graphs
+- `button-card` - Customizable buttons
+- `mushroom-cards` - Modern card design
 
 ## Support
 

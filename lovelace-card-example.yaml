@@ -1,0 +1,254 @@
+# Solis Cloud Dashboard Card Example
+# Copy this configuration to your Home Assistant dashboard
+# Adjust entity IDs to match your inverter serial number
+
+type: vertical-stack
+cards:
+  # Main Power Flow Card
+  - type: custom:power-flow-card-plus
+    entities:
+      grid:
+        entity: sensor.solis_grid_consumption
+        name: Grid
+      solar:
+        entity: sensor.solis_current_production
+        name: Solar
+      battery:
+        entity: sensor.solis_battery_state
+        name: Battery
+      home:
+        entity: sensor.solis_backup_load
+        name: Home
+    # Note: Requires power-flow-card-plus from HACS
+    # Alternative: Use built-in Energy Flow card
+
+  # Alternative: Built-in Energy Distribution Card
+  - type: energy-distribution
+    title: Solar Energy Flow
+    entities:
+      - entity: sensor.solis_current_production
+        name: Solar Production
+      - entity: sensor.solis_grid_consumption
+        name: Grid
+      - entity: sensor.solis_backup_load
+        name: House Load
+
+  # Status Overview Card
+  - type: entities
+    title: Solis Inverter Status
+    show_header_toggle: false
+    entities:
+      - entity: sensor.solis_current_state
+        name: Status
+        icon: mdi:solar-power
+      - entity: sensor.solis_current_production
+        name: Current Production
+        icon: mdi:solar-power-variant
+      - entity: sensor.solis_battery_soc
+        name: Battery Level
+        icon: mdi:battery
+      - entity: sensor.solis_inverter_temperature
+        name: Temperature
+        icon: mdi:thermometer
+      - type: divider
+      - entity: sensor.solis_today_production
+        name: Today
+        icon: mdi:calendar-today
+      - entity: sensor.solis_energy_this_month
+        name: This Month
+        icon: mdi:calendar-month
+      - entity: sensor.solis_energy_this_year
+        name: This Year
+        icon: mdi:calendar
+
+  # Power Gauges Card
+  - type: horizontal-stack
+    cards:
+      - type: gauge
+        entity: sensor.solis_current_production
+        name: Solar Power
+        min: 0
+        max: 5000
+        severity:
+          green: 1000
+          yellow: 500
+          red: 0
+        needle: true
+      - type: gauge
+        entity: sensor.solis_battery_soc
+        name: Battery
+        min: 0
+        max: 100
+        severity:
+          green: 60
+          yellow: 30
+          red: 0
+        needle: true
+
+  # Battery Details Card
+  - type: entities
+    title: Battery Details
+    show_header_toggle: false
+    entities:
+      - entity: sensor.solis_battery_soc
+        name: State of Charge
+        icon: mdi:battery-80
+      - entity: sensor.solis_battery_state
+        name: Battery Power
+        icon: mdi:battery-charging
+      - type: attribute
+        entity: sensor.solis_battery_state
+        attribute: battery_state
+        name: Status
+        icon: mdi:information
+
+  # Energy Production History
+  - type: history-graph
+    title: Solar Production History
+    hours_to_show: 24
+    entities:
+      - entity: sensor.solis_current_production
+        name: Production
+
+  # Energy Statistics Card
+  - type: statistic
+    entity: sensor.solis_today_production
+    name: Today's Energy Production
+    period:
+      calendar:
+        period: day
+    stat_type: change
+
+---
+
+# Compact Single Card Version
+# For a more compact dashboard view
+
+type: custom:mushroom-entity-card
+entity: sensor.solis_current_production
+name: Solar Power
+icon: mdi:solar-power
+icon_color: amber
+tap_action:
+  action: more-info
+card_mod:
+  style: |
+    ha-card {
+      background: linear-gradient(135deg, #FFA500 0%, #FFD700 100%);
+    }
+
+---
+
+# Detailed Grid Card with ApexCharts
+# Requires ApexCharts card from HACS
+
+type: custom:apexcharts-card
+header:
+  show: true
+  title: Solar Production vs Consumption
+  show_states: true
+series:
+  - entity: sensor.solis_current_production
+    name: Solar Production
+    color: orange
+    type: area
+  - entity: sensor.solis_backup_load
+    name: House Load
+    color: blue
+    type: line
+  - entity: sensor.solis_grid_consumption
+    name: Grid
+    color: green
+    type: line
+span:
+  start: day
+graph_span: 24h
+update_interval: 5min
+
+---
+
+# Mobile-Optimized Compact Card
+
+type: vertical-stack
+cards:
+  - type: glance
+    title: Solar Overview
+    show_name: true
+    show_state: true
+    entities:
+      - entity: sensor.solis_current_production
+        name: Power
+        icon: mdi:solar-power
+      - entity: sensor.solis_battery_soc
+        name: Battery
+        icon: mdi:battery
+      - entity: sensor.solis_today_production
+        name: Today
+        icon: mdi:calendar-today
+      - entity: sensor.solis_current_state
+        name: Status
+        icon: mdi:information
+
+  - type: custom:mini-graph-card
+    entities:
+      - entity: sensor.solis_current_production
+        name: Solar Power
+        color: '#ff9800'
+    hours_to_show: 12
+    line_width: 3
+    animate: true
+    show:
+      name: true
+      icon: true
+      state: true
+      legend: false
+
+---
+
+# Energy Dashboard Configuration
+# Add to Settings > Dashboards > Energy
+
+# Solar Production:
+# - Add sensor.solis_today_production
+
+# Grid Consumption:
+# - Add sensor.solis_grid_consumption (if available as energy sensor)
+
+# Battery Storage:
+# - Add sensor.solis_battery_state (configure as battery)
+# - State of charge: sensor.solis_battery_soc
+
+# Home Battery:
+# - Add sensor.solis_backup_load
+
+---
+
+# Custom Button Card (Requires button-card from HACS)
+
+type: custom:button-card
+entity: sensor.solis_current_production
+name: Solar Production
+show_state: true
+show_icon: true
+icon: mdi:solar-power
+color_type: card
+color: |
+  [[[
+    if (entity.state > 3000) return 'rgb(0, 255, 0)';
+    if (entity.state > 1000) return 'rgb(255, 165, 0)';
+    return 'rgb(255, 0, 0)';
+  ]]]
+styles:
+  card:
+    - font-size: 14px
+    - border-radius: 10px
+  name:
+    - font-weight: bold
+  state:
+    - font-size: 20px
+state_display: |
+  [[[
+    return entity.state + ' W';
+  ]]]
+tap_action:
+  action: more-info
