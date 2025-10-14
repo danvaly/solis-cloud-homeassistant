@@ -1,3 +1,3 @@
 """Constants for the Solis Cloud integration."""
 
-DOMAIN = "solis_cloud"
+DOMAIN = "https://www.soliscloud.com:13333/"
