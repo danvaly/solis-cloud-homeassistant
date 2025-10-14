@@ -30,16 +30,20 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
     api = SolisCloudAPI(
         key_id=data["key_id"],
         secret=data["secret"],
-        username=data["username"],
+        username=data.get("username", ""),
     )
 
     try:
-        await hass.async_add_executor_job(api.get_inverter_data)
+        result = await hass.async_add_executor_job(api.get_inverter_data)
+        inverter_count = len(result.get("records", []))
+        _LOGGER.info("Successfully validated connection, found %d inverter(s)", inverter_count)
     except Exception as err:
         _LOGGER.error("Error connecting to Solis Cloud: %s", err)
         raise CannotConnect from err
 
-    return {"title": f"Solis Cloud ({data['username']})"}
+    # Use username if provided, otherwise use key_id
+    title_name = data.get("username") or data["key_id"][:10]
+    return {"title": f"Solis Cloud ({title_name})"}
 
 
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
