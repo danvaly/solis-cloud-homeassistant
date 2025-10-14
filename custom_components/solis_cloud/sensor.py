@@ -10,6 +10,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     UnitOfEnergy,
     UnitOfPower,
+    UnitOfTemperature,
     PERCENTAGE,
 )
 from homeassistant.core import HomeAssistant
@@ -39,28 +40,103 @@ async def async_setup_entry(
             station_name = inverter.get("stationName", "Solis")
 
             entities.extend([
+                # Current production in watts
                 SolisCloudSensor(
                     coordinator,
                     inverter_id,
                     inverter_sn,
                     station_name,
                     "pac",
-                    "Current Power",
+                    "Current Production",
                     UnitOfPower.WATT,
                     SensorDeviceClass.POWER,
                     SensorStateClass.MEASUREMENT,
                 ),
+                # Battery State of Charge (%)
+                SolisCloudSensor(
+                    coordinator,
+                    inverter_id,
+                    inverter_sn,
+                    station_name,
+                    "batteryCapacitySoc",
+                    "Battery SOC",
+                    PERCENTAGE,
+                    SensorDeviceClass.BATTERY,
+                    SensorStateClass.MEASUREMENT,
+                ),
+                # Today production (kWh)
                 SolisCloudSensor(
                     coordinator,
                     inverter_id,
                     inverter_sn,
                     station_name,
                     "eToday",
-                    "Energy Today",
+                    "Today Production",
                     UnitOfEnergy.KILO_WATT_HOUR,
                     SensorDeviceClass.ENERGY,
                     SensorStateClass.TOTAL_INCREASING,
                 ),
+                # Grid consumption (W)
+                SolisCloudSensor(
+                    coordinator,
+                    inverter_id,
+                    inverter_sn,
+                    station_name,
+                    "psum",
+                    "Grid Consumption",
+                    UnitOfPower.WATT,
+                    SensorDeviceClass.POWER,
+                    SensorStateClass.MEASUREMENT,
+                ),
+                # Battery state (charge/discharge)
+                SolisCloudSensor(
+                    coordinator,
+                    inverter_id,
+                    inverter_sn,
+                    station_name,
+                    "batteryPower",
+                    "Battery State",
+                    UnitOfPower.WATT,
+                    SensorDeviceClass.POWER,
+                    SensorStateClass.MEASUREMENT,
+                ),
+                # Backup load (kWh)
+                SolisCloudSensor(
+                    coordinator,
+                    inverter_id,
+                    inverter_sn,
+                    station_name,
+                    "familyLoadPower",
+                    "Backup Load",
+                    UnitOfPower.WATT,
+                    SensorDeviceClass.POWER,
+                    SensorStateClass.MEASUREMENT,
+                ),
+                # Current state
+                SolisCloudSensor(
+                    coordinator,
+                    inverter_id,
+                    inverter_sn,
+                    station_name,
+                    "state",
+                    "Current State",
+                    None,
+                    None,
+                    None,
+                ),
+                # Inverter temperature
+                SolisCloudSensor(
+                    coordinator,
+                    inverter_id,
+                    inverter_sn,
+                    station_name,
+                    "inverterTemperature",
+                    "Inverter Temperature",
+                    UnitOfTemperature.CELSIUS,
+                    SensorDeviceClass.TEMPERATURE,
+                    SensorStateClass.MEASUREMENT,
+                ),
+                # Additional useful sensors
                 SolisCloudSensor(
                     coordinator,
                     inverter_id,
@@ -93,17 +169,6 @@ async def async_setup_entry(
                     UnitOfEnergy.KILO_WATT_HOUR,
                     SensorDeviceClass.ENERGY,
                     SensorStateClass.TOTAL_INCREASING,
-                ),
-                SolisCloudSensor(
-                    coordinator,
-                    inverter_id,
-                    inverter_sn,
-                    station_name,
-                    "state",
-                    "State",
-                    None,
-                    None,
-                    None,
                 ),
             ])
 
@@ -164,4 +229,25 @@ class SolisCloudSensor(CoordinatorEntity, SensorEntity):
                         return state_map.get(str(value), "Unknown")
 
                     return value
+        return None
+
+    @property
+    def extra_state_attributes(self):
+        """Return additional state attributes."""
+        if self._sensor_key == "batteryPower":
+            # Add battery state as attribute
+            if self.coordinator.data and "records" in self.coordinator.data:
+                for inverter in self.coordinator.data["records"]:
+                    if inverter.get("id") == self._inverter_id:
+                        power = inverter.get("batteryPower", 0)
+                        if power > 0:
+                            state = "Charging"
+                        elif power < 0:
+                            state = "Discharging"
+                        else:
+                            state = "Idle"
+                        return {
+                            "battery_state": state,
+                            "power": abs(power) if power else 0
+                        }
         return None
