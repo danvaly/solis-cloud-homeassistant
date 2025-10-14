@@ -30,8 +30,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     async def async_update_data():
         """Fetch data from API."""
         try:
-            return await hass.async_add_executor_job(api.get_inverter_data)
+            data = await hass.async_add_executor_job(api.get_inverter_data)
+            _LOGGER.debug("Received data from Solis Cloud API: %s", data)
+            return data
         except Exception as err:
+            _LOGGER.error("Error communicating with API: %s", err)
             raise UpdateFailed(f"Error communicating with API: {err}")
 
     coordinator = DataUpdateCoordinator(

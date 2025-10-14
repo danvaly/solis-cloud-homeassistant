@@ -1,6 +1,8 @@
 """Platform for sensor integration."""
 from __future__ import annotations
 
+import logging
+
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
@@ -22,6 +24,8 @@ from homeassistant.helpers.update_coordinator import (
 
 from .const import DOMAIN
 
+_LOGGER = logging.getLogger(__name__)
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -31,27 +35,35 @@ async def async_setup_entry(
     """Set up the sensor platform."""
     coordinator = hass.data[DOMAIN][config_entry.entry_id]
 
+    _LOGGER.info("Setting up Solis Cloud sensors")
+    _LOGGER.debug("Coordinator data: %s", coordinator.data)
+
     entities = []
 
-    if coordinator.data and "records" in coordinator.data:
-        for inverter in coordinator.data["records"]:
-            inverter_id = inverter.get("id")
-            inverter_sn = inverter.get("inverterSn")
-            station_name = inverter.get("stationName", "Solis")
+    if coordinator.data:
+        # Check if data has "records" key (list of inverters)
+        if "records" in coordinator.data:
+            _LOGGER.info("Found %d inverters", len(coordinator.data["records"]))
+            for inverter in coordinator.data["records"]:
+                inverter_id = inverter.get("id")
+                inverter_sn = inverter.get("inverterSn")
+                station_name = inverter.get("stationName", "Solis")
 
-            entities.extend([
-                # Current production in watts
-                SolisCloudSensor(
-                    coordinator,
-                    inverter_id,
-                    inverter_sn,
-                    station_name,
-                    "pac",
-                    "Current Production",
-                    UnitOfPower.WATT,
-                    SensorDeviceClass.POWER,
-                    SensorStateClass.MEASUREMENT,
-                ),
+                _LOGGER.info("Setting up inverter: %s (SN: %s)", station_name, inverter_sn)
+
+                entities.extend([
+                    # Current production in watts
+                    SolisCloudSensor(
+                        coordinator,
+                        inverter_id,
+                        inverter_sn,
+                        station_name,
+                        "pac",
+                        "Current Production",
+                        UnitOfPower.WATT,
+                        SensorDeviceClass.POWER,
+                        SensorStateClass.MEASUREMENT,
+                    ),
                 # Battery State of Charge (%)
                 SolisCloudSensor(
                     coordinator,
@@ -169,9 +181,14 @@ async def async_setup_entry(
                     UnitOfEnergy.KILO_WATT_HOUR,
                     SensorDeviceClass.ENERGY,
                     SensorStateClass.TOTAL_INCREASING,
-                ),
-            ])
+                    ),
+                ])
+        else:
+            _LOGGER.warning("No 'records' key in coordinator data. Data structure: %s", list(coordinator.data.keys()) if isinstance(coordinator.data, dict) else type(coordinator.data))
+    else:
+        _LOGGER.warning("No data available from coordinator")
 
+    _LOGGER.info("Created %d sensor entities", len(entities))
     async_add_entities(entities)
 
 
