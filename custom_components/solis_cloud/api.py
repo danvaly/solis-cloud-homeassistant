@@ -32,6 +32,14 @@ class SolisCloudAPI:
         # Create the string to sign
         string_to_sign = f"{verb}\n{content_md5}\n{content_type}\n{date}\n{canonicalized_resource}"
 
+        _LOGGER.debug("Signature generation:")
+        _LOGGER.debug("  verb: %s", verb)
+        _LOGGER.debug("  content_md5: %s", content_md5)
+        _LOGGER.debug("  content_type: %s", content_type)
+        _LOGGER.debug("  date: %s", date)
+        _LOGGER.debug("  canonicalized_resource: %s", canonicalized_resource)
+        _LOGGER.debug("  string_to_sign: %r", string_to_sign)
+
         # Generate HMAC-SHA1 signature
         hmac_obj = hmac.new(
             self.secret.encode('utf-8'),
@@ -40,8 +48,12 @@ class SolisCloudAPI:
         )
         signature = base64.b64encode(hmac_obj.digest()).decode('utf-8')
 
+        _LOGGER.debug("  signature: %s", signature)
+
         # Return Authorization header value
-        return f"API {self.key_id}:{signature}"
+        authorization = f"API {self.key_id}:{signature}"
+        _LOGGER.debug("  authorization: %s", authorization)
+        return authorization
 
     def get_inverter_data(self) -> dict[str, Any]:
         """Get inverter data from Solis Cloud."""
@@ -49,7 +61,8 @@ class SolisCloudAPI:
         url = f"{self.base_url}/v1/api/userStationList"
 
         # Prepare request body - get stations with pagination
-        body = json.dumps({"pageNo": 1, "pageSize": 20})
+        # Note: API expects string values, not integers
+        body = json.dumps({"pageNo": "1", "pageSize": "10"}, separators=(',', ':'))
         content_type = "application/json;charset=UTF-8"
 
         # Generate Content-MD5
@@ -76,9 +89,12 @@ class SolisCloudAPI:
             "Authorization": authorization
         }
 
-        _LOGGER.debug("Making request to %s", url)
-        _LOGGER.debug("Request body: %s", body)
-        _LOGGER.debug("Request headers: %s", {k: v for k, v in headers.items() if k != "Authorization"})
+        _LOGGER.info("Making request to %s", url)
+        _LOGGER.info("Request body: %s", body)
+        _LOGGER.info("Request body (raw bytes): %r", body.encode('utf-8'))
+        _LOGGER.info("Request headers:")
+        for k, v in headers.items():
+            _LOGGER.info("  %s: %s", k, v)
 
         try:
             # Get stations first
@@ -142,7 +158,7 @@ class SolisCloudAPI:
         url = f"{self.base_url}/v1/api/inverterList"
 
         # Prepare request body
-        body = json.dumps({"stationId": station_id})
+        body = json.dumps({"stationId": str(station_id)}, separators=(',', ':'))
         content_type = "application/json;charset=UTF-8"
 
         # Generate Content-MD5
@@ -195,7 +211,7 @@ class SolisCloudAPI:
         body = json.dumps({
             "id": str(inverter_id),
             "sn": str(inverter_sn)
-        })
+        }, separators=(',', ':'))
         content_type = "application/json;charset=UTF-8"
 
         # Generate Content-MD5
