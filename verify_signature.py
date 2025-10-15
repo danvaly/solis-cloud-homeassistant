@@ -13,7 +13,12 @@ def get_content_md5(body):
     return base64.b64encode(md5.digest()).decode('utf-8')
 
 def generate_signature(key_id, secret, verb, content_md5, content_type, date, resource):
-    """Generate HMAC-SHA1 signature."""
+    """Generate HMAC-SHA1 signature.
+    
+    Note: content_type should be "application/json" (without charset)
+    for signature generation, even though the actual HTTP header
+    uses "application/json;charset=UTF-8".
+    """
     string_to_sign = f"{verb}\n{content_md5}\n{content_type}\n{date}\n{resource}"
 
     print("=" * 70)
@@ -67,7 +72,7 @@ signature = generate_signature(
     secret,
     "POST",
     content_md5,
-    "application/json;charset=UTF-8",
+    "application/json",
     time_str,
     "/v1/api/userStationList"
 )

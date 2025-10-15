@@ -13,7 +13,12 @@ def get_content_md5(body):
     return base64.b64encode(md5.digest()).decode('utf-8')
 
 def generate_signature(key_id, secret, verb, content_md5, content_type, date, resource):
-    """Generate HMAC-SHA1 signature."""
+    """Generate HMAC-SHA1 signature.
+    
+    Note: content_type should be "application/json" (without charset)
+    for signature generation, even though the actual HTTP header
+    uses "application/json;charset=UTF-8".
+    """
     string_to_sign = f"{verb}\n{content_md5}\n{content_type}\n{date}\n{resource}"
 
     hmac_obj = hmac.new(
@@ -53,7 +58,7 @@ print(f"MD5 Match:    {'âœ“ YES' if md5_1 == 'sAGxE9QzeBN88qPrz+sCZQ==' else 'âœ
 
 sig1, str_to_sign1 = generate_signature(
     key_id, secret, "POST", md5_1,
-    "application/json;charset=UTF-8",
+    "application/json",
     time1,
     "/v1/api/userStationList"
 )
@@ -81,7 +86,7 @@ print(f"MD5 Match:    {'âœ“ YES' if md5_2 == 'Rj65esO7Ob/1oA/2DcJDxw==' else 'âœ
 
 sig2, str_to_sign2 = generate_signature(
     key_id, secret, "POST", md5_2,
-    "application/json;charset=UTF-8",
+    "application/json",
     time2,
     "/v1/api/inverterDetail"
 )

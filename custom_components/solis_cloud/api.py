@@ -27,8 +27,11 @@ class SolisCloudAPI:
         md5.update(body.encode('utf-8'))
         return base64.b64encode(md5.digest()).decode('utf-8')
 
-    def _generate_signature(self, body: str, verb: str, content_md5: str, content_type: str, date: str, canonicalized_resource: str) -> str:
+    def _generate_signature(self, body: str, verb: str, content_md5: str, date: str, canonicalized_resource: str) -> str:
         """Generate HMAC-SHA1 signature for Solis Cloud API."""
+        # Content type for signature should be "application/json" without charset
+        content_type = "application/json"
+        
         # Create the string to sign
         string_to_sign = f"{verb}\n{content_md5}\n{content_type}\n{date}\n{canonicalized_resource}"
 
@@ -76,16 +79,15 @@ class SolisCloudAPI:
             body=body,
             verb="POST",
             content_md5=content_md5,
-            content_type=content_type,
             date=date_str,
             canonicalized_resource="/v1/api/userStationList"
         )
 
-        # Prepare headers (note: use 'time' instead of 'Date')
+        # Prepare headers (note: use 'Time' instead of 'Date')
         headers = {
             "Content-Type": content_type,
             "Content-MD5": content_md5,
-            "time": date_str,
+            "Time": date_str,
             "Authorization": authorization
         }
 
@@ -172,16 +174,15 @@ class SolisCloudAPI:
             body=body,
             verb="POST",
             content_md5=content_md5,
-            content_type=content_type,
             date=date_str,
             canonicalized_resource="/v1/api/inverterList"
         )
 
-        # Prepare headers (note: use 'time' instead of 'Date')
+        # Prepare headers (note: use 'Time' instead of 'Date')
         headers = {
             "Content-Type": content_type,
             "Content-MD5": content_md5,
-            "time": date_str,
+            "Time": date_str,
             "Authorization": authorization
         }
 
@@ -225,16 +226,15 @@ class SolisCloudAPI:
             body=body,
             verb="POST",
             content_md5=content_md5,
-            content_type=content_type,
             date=date_str,
             canonicalized_resource="/v1/api/inverterDetail"
         )
 
-        # Prepare headers (note: use 'time' instead of 'Date')
+        # Prepare headers (note: use 'Time' instead of 'Date')
         headers = {
             "Content-Type": content_type,
             "Content-MD5": content_md5,
-            "time": date_str,
+            "Time": date_str,
             "Authorization": authorization
         }
 
