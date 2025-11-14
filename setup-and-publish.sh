@@ -14,7 +14,7 @@ echo ""
 # Configuration
 REPO_NAME="solis-cloud-homeassistant"
 GITHUB_USERNAME="danvaly"
-VERSION="1.0.0"
+VERSION="1.0.8"
 
 # Color codes for output
 RED='\033[0;31m'
