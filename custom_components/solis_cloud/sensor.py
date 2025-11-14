@@ -274,6 +274,18 @@ async def async_setup_entry(
                     SensorDeviceClass.ENERGY,
                     SensorStateClass.TOTAL_INCREASING,
                 ),
+                # Home load energy sensors
+                SolisCloudSensor(
+                    coordinator,
+                    inverter_id,
+                    inverter_sn,
+                    station_name,
+                    "homeLoadTodayEnergy",
+                    "Home Load Today",
+                    UnitOfEnergy.KILO_WATT_HOUR,
+                    SensorDeviceClass.ENERGY,
+                    SensorStateClass.TOTAL_INCREASING,
+                ),
                 ])
         else:
             _LOGGER.warning("No 'records' key in coordinator data. Data structure: %s", list(coordinator.data.keys()) if isinstance(coordinator.data, dict) else type(coordinator.data))

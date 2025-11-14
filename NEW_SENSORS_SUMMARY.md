@@ -1,7 +1,7 @@
 # New Sensors Added - October 15, 2025
 
 ## Summary
-Added additional energy monitoring sensors for grid consumption, grid export, and battery energy tracking.
+Added additional energy monitoring sensors for grid consumption, grid export, battery energy tracking, and home load consumption.
 
 ## New Sensors
 
@@ -66,6 +66,15 @@ Added additional energy monitoring sensors for grid consumption, grid export, an
 - **Unit**: kWh
 - **Type**: Energy (Total Increasing)
 - **Description**: Total energy discharged from the battery (lifetime)
+
+### 4. Home Load Energy Sensor
+
+#### Home Load Today
+- **Entity ID**: `sensor.{station_name}_home_load_today`
+- **API Field**: `homeLoadTodayEnergy`
+- **Unit**: kWh
+- **Type**: Energy (Total Increasing)
+- **Description**: Energy consumed by the house today
 
 ## Grid Carbon Footprint
 
@@ -159,6 +168,7 @@ All sensor data comes from the `inverterDetail` endpoint:
 | Battery Charge Total | `batteryTotalChargeEnergy` | kWh |
 | Battery Discharge Today | `batteryTodayDischargeEnergy` | kWh |
 | Battery Discharge Total | `batteryTotalDischargeEnergy` | kWh |
+| Home Load Today | `homeLoadTodayEnergy` | kWh |
 
 ## Testing
 

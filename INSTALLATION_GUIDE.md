@@ -2,11 +2,12 @@
 
 ## What Was Added
 
-✅ **8 new energy sensors** have been added to track:
+✅ **9 new energy sensors** have been added to track:
 - Grid consumption (import from grid)
 - Grid export (return to grid) 
 - Battery charge energy (energy going INTO battery)
 - Battery discharge energy (energy coming OUT of battery)
+- Home load consumption (energy used by the house)
 
 All sensors measure energy in **kWh** and are fully compatible with Home Assistant's Energy Dashboard.
 
@@ -47,6 +48,7 @@ After restart, check Developer Tools → States for new sensors:
 - `sensor.{station}_battery_charge_total`
 - `sensor.{station}_battery_discharge_today`
 - `sensor.{station}_battery_discharge_total`
+- `sensor.{station}_home_load_today`
 
 Replace `{station}` with your actual station name (e.g., "Ghica Valentin Danut CV24").
 
@@ -70,10 +72,14 @@ Replace `{station}` with your actual station name (e.g., "Ghica Valentin Danut C
    - **Energy going IN**: `sensor.{station}_battery_charge_total`
    - **Energy coming OUT**: `sensor.{station}_battery_discharge_total`
 
-5. **Solar Panels** (if not already added):
+5. **Individual Device** (Optional - for house consumption):
+   - Click "Add individual device"
+   - Select: `sensor.{station}_home_load_today` (for tracking house consumption separately)
+
+6. **Solar Panels** (if not already added):
    - Select: `sensor.{station}_energy_total`
 
-6. Click **Save**
+7. Click **Save**
 
 The Energy Dashboard will now show complete energy flow!
 
@@ -103,6 +109,11 @@ cards:
     entity: sensor.your_station_battery_discharge_today
     name: Battery Used Today
     icon: mdi:battery-minus
+  
+  - type: entity
+    entity: sensor.your_station_home_load_today
+    name: House Consumption Today
+    icon: mdi:home-lightning-bolt
 ```
 
 ## Calculate Carbon Footprint (Optional)
@@ -219,7 +230,8 @@ These sensors pull data from the Solis Cloud `inverterDetail` endpoint:
   "batteryTodayChargeEnergy": 0.000,
   "batteryTotalChargeEnergy": 174.000,
   "batteryTodayDischargeEnergy": 0.000,
-  "batteryTotalDischargeEnergy": 195.000
+  "batteryTotalDischargeEnergy": 195.000,
+  "homeLoadTodayEnergy": 0.000
 }
 ```
 
