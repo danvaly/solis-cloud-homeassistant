@@ -100,6 +100,12 @@ SENSOR_DEFINITIONS = [
     ("currentState", "Operating State", None, None, None),
 ]
 
+# Computed sensors derived from other API fields: (key, name, source_key, unit, device_class, state_class)
+COMPUTED_SENSOR_DEFINITIONS = [
+    ("gridExportPower", "Grid Export Power", "psum", UnitOfPower.WATT, SensorDeviceClass.POWER, SensorStateClass.MEASUREMENT),
+    ("gridImportPower", "Grid Import Power", "psum", UnitOfPower.WATT, SensorDeviceClass.POWER, SensorStateClass.MEASUREMENT),
+]
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -142,6 +148,24 @@ async def async_setup_entry(
                         )
                     else:
                         _LOGGER.debug("Skipping sensor '%s' - key '%s' not in API data", name, api_key)
+
+                # Add computed sensors
+                for key, name, source_key, unit, device_class, state_class in COMPUTED_SENSOR_DEFINITIONS:
+                    if source_key in inverter:
+                        entities.append(
+                            SolisCloudComputedSensor(
+                                coordinator,
+                                inverter_id,
+                                inverter_sn,
+                                station_name,
+                                key,
+                                name,
+                                source_key,
+                                unit,
+                                device_class,
+                                state_class,
+                            )
+                        )
         else:
             _LOGGER.warning("No 'records' key in coordinator data. Data structure: %s", list(coordinator.data.keys()) if isinstance(coordinator.data, dict) else type(coordinator.data))
     else:
@@ -228,3 +252,52 @@ class SolisCloudSensor(CoordinatorEntity, SensorEntity):
         else:
             state = "Idle"
         return {"battery_state": state, "power": abs(power) if power else 0}
+
+
+class SolisCloudComputedSensor(SolisCloudSensor):
+    """A sensor whose value is computed from another API field."""
+
+    def __init__(
+        self,
+        coordinator: DataUpdateCoordinator,
+        inverter_id: str,
+        inverter_sn: str,
+        station_name: str,
+        sensor_key: str,
+        sensor_name: str,
+        source_key: str,
+        unit: str | None,
+        device_class: SensorDeviceClass | None,
+        state_class: SensorStateClass | None,
+    ) -> None:
+        """Initialize the computed sensor."""
+        super().__init__(
+            coordinator, inverter_id, inverter_sn, station_name,
+            sensor_key, sensor_name, unit, device_class, state_class,
+        )
+        self._source_key = source_key
+
+    @property
+    def native_value(self):
+        """Return the computed value."""
+        inverter = self._get_inverter_data()
+        if inverter is None:
+            return None
+
+        value = inverter.get(self._source_key)
+        if value is None:
+            return None
+
+        try:
+            value = float(value)
+        except (ValueError, TypeError):
+            return None
+
+        if self._sensor_key == "gridExportPower":
+            # psum positive = exporting to grid
+            return max(0, value)
+        elif self._sensor_key == "gridImportPower":
+            # psum negative = importing from grid, show as positive value
+            return max(0, -value)
+
+        return None
